@@ -81,6 +81,14 @@ struct AlloApp : App {
 
     // Calculate forces
 
+    for (int i = 0; i < mesh.vertices().size(); ++i) {
+      for (int j = i + 1; j < mesh.vertices().size(); ++j) {
+        // i and j are a pair
+      }
+    }
+
+    // 
+
     // XXX you put code here that calculates gravitational forces and sets
     // accelerations These are pair-wise. Each unique pairing of two particles
     // These are equal but opposite: A exerts a force on B while B exerts that
