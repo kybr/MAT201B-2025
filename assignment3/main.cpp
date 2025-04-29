@@ -14,6 +14,19 @@ Vec3f randomVec3f(float scale) {
   return Vec3f(rnd::uniformS(), rnd::uniformS(), rnd::uniformS()) * scale;
 }
 
+class Agent : public Nav {
+  std::vector<Pose> path;
+  public:
+  virtual ~Agent() = default;
+  Agent() {
+    path.resize(5);
+  }
+  virtual void step(double dt) {
+    //
+    Nav::step(dt);
+  }
+};
+
 struct AlloApp : App {
   Parameter timeStep{"/timeStep", "", 0.1, 0.01, 0.6};
 
@@ -23,7 +36,7 @@ struct AlloApp : App {
   Mesh mesh;
 
   // size, color, species, sex, age, etc.
-  std::vector<Nav> agent;
+  std::vector<Agent> agent;
 
   void onInit() override {
     auto GUIdomain = GUIDomain::enableGUI(defaultWindowDomain());
@@ -37,12 +50,13 @@ struct AlloApp : App {
     // mesh.translate(0, 0, -0.1);
     addCone(mesh);
     mesh.scale(1, 1, 1.3);
+    mesh.scale(0.5);
 
     mesh.generateNormals();
     light.pos(0, 10, 10);
 
     for (int i = 0; i < 10; ++i) {
-      Nav p;
+      Agent p;
       p.pos() = randomVec3f(5);
       p.quat()
           .set(rnd::uniformS(), rnd::uniformS(), rnd::uniformS(),
@@ -65,10 +79,23 @@ struct AlloApp : App {
     }
     time += dt;
 
-    for (int i = 0; i < agent.size(); ++i) {
-      agent[i].moveF(5);
-      agent[i].faceToward(food, 0.03);
+    agent[0].moveF(5);
+    agent[0].faceToward(agent[agent.size()-1].pos(), 0.02); // Nav faceToward()
+    for (int i = 1; i < agent.size(); ++i) {
+      agent[i].moveF(al::rnd::uniform(4, 6));
+      agent[i].faceToward(agent[i-1].pos(), 0.02); // Nav faceToward()
+      // agent[i].uf(); // stands for "unit forward", a length 1 vector that
+      // is in the reference frame of the agent (Nav). 
     }
+
+    // calculating average heading
+    Vec3f heading;
+    for (int i = 0; i < agent.size(); ++i) {
+      heading += agent[i].uf();
+    }
+    heading.normalize();
+
+    agent[0].uu(); // the "unit up" vector, points up in the reference frame of the agent
 
     ///////
     for (int i = 0; i < agent.size(); ++i) {
