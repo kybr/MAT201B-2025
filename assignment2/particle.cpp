@@ -16,8 +16,22 @@ Vec3f randomVec3f(float scale) {
 }
 string slurp(string fileName);  // forward declaration
 
+
+class Like {
+  public:
+  int i, j;
+  float energy;
+};
+
+class Spring {
+  public:
+  int i, j;
+  float length;
+  float stiffness;
+};
+
 struct AlloApp : App {
-  Parameter pointSize{"/pointSize", "", 1.0, 0.0, 2.0};
+  Parameter pointSize{"/pointSize", "", 2.0, 1.0, 10.0};
   Parameter timeStep{"/timeStep", "", 0.1, 0.01, 0.6};
   Parameter dragFactor{"/dragFactor", "", 0.1, 0.0, 0.9};
   //
@@ -29,6 +43,9 @@ struct AlloApp : App {
   vector<Vec3f> velocity;
   vector<Vec3f> force;
   vector<float> mass;
+
+  std::vector<Spring> spring_list;
+  std::vector<Like> like_list;
 
   void onInit() override {
     // set up GUI
@@ -55,7 +72,7 @@ struct AlloApp : App {
     mesh.primitive(Mesh::POINTS);
     // does 1000 work on your system? how many can you make before you get a low
     // frame rate? do you need to use <1000?
-    for (int _ = 0; _ < 1000; _++) {
+    for (int _ = 0; _ < 10; _++) {
       mesh.vertex(randomVec3f(5));
       mesh.color(randomColor());
 
@@ -79,11 +96,32 @@ struct AlloApp : App {
   void onAnimate(double dt) override {
     if (freeze) return;
 
+    for (int k = 0; k < spring_list.size(); ++k) {
+      auto spring = spring_list[k];
+      Vec3f a = mesh.vertices()[spring.i];
+      Vec3f b = mesh.vertices()[spring.j];
+      Vec3f displacement = b - a;
+      float distance = displacement.mag();
+      Vec3f f = displacement.normalize() * spring.stiffness * (distance - spring.length);
+      force[spring.i] += f;
+      force[spring.j] -= f;
+    }
+
+    for (int k = 0; k < like_list.size(); ++k) {
+      auto like = like_list[k];
+      Vec3f a = mesh.vertices()[like.i];
+      Vec3f b = mesh.vertices()[like.j];
+      Vec3f displacement = b - a;
+      Vec3f f = displacement.normalize() * like.energy;
+      force[like.i] += f;
+      force[like.j] += f;
+    }
     // Calculate forces
 
     for (int i = 0; i < mesh.vertices().size(); ++i) {
       for (int j = i + 1; j < mesh.vertices().size(); ++j) {
         // i and j are a pair
+        // limit large forces... if the force is too large, ignore it
       }
     }
 
@@ -138,6 +176,28 @@ struct AlloApp : App {
       }
     }
 
+    if (k.key() == '2') {
+      // choose 2 particles at random
+      int i = rnd::uniform(mesh.vertices().size());
+      int j = rnd::uniform(mesh.vertices().size());
+      while (i == j) {
+        j = rnd::uniform(mesh.vertices().size());
+      }
+      // i and j are different particles....
+      spring_list.push_back({i, j, 2.0, 2.0});
+    }
+
+    if (k.key() == '3') {
+      // choose 2 particles at random
+      int i = rnd::uniform(mesh.vertices().size());
+      int j = rnd::uniform(mesh.vertices().size());
+      while (i == j) {
+        j = rnd::uniform(mesh.vertices().size());
+      }
+      // i and j are different particles....
+      like_list.push_back({i, j, 0.1});
+    }
+
     return true;
   }
 
@@ -149,6 +209,17 @@ struct AlloApp : App {
     g.blendTrans();
     g.depthTesting(true);
     g.draw(mesh);
+
+    g.color(1.0, 1.0, 0.0); // resets shader....
+    Mesh springs(Mesh::LINES);
+    for (int k = 0; k < spring_list.size(); ++k) {
+      auto spring = spring_list[k];
+      Vec3f a = mesh.vertices()[spring.i];
+      Vec3f b = mesh.vertices()[spring.j];
+      springs.vertex(a);
+      springs.vertex(b);
+    }
+    g.draw(springs);
   }
 };
 

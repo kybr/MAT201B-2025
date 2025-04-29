@@ -72,7 +72,7 @@ struct AlloApp : App {
     mesh.primitive(Mesh::POINTS);
     // does 1000 work on your system? how many can you make before you get a low
     // frame rate? do you need to use <1000?
-    for (int _ = 0; _ < 10; _++) {
+    for (int _ = 0; _ < 100; _++) {
       mesh.vertex(randomVec3f(5));
       mesh.color(randomColor());
 
@@ -121,6 +121,7 @@ struct AlloApp : App {
     for (int i = 0; i < mesh.vertices().size(); ++i) {
       for (int j = i + 1; j < mesh.vertices().size(); ++j) {
         // i and j are a pair
+        // limit large forces... if the force is too large, ignore it
       }
     }
 
@@ -194,7 +195,7 @@ struct AlloApp : App {
         j = rnd::uniform(mesh.vertices().size());
       }
       // i and j are different particles....
-      like_list.push_back({i, j, 0.1});
+      like_list.push_back({i, j, rnd::uniform()});
     }
 
     return true;
