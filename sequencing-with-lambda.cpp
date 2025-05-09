@@ -37,8 +37,8 @@ class MyVoice : public SynthVoice {
 
   double time = 0;
 
-  // a "function pointer" ... starts out as a nullptr
-  Vec3f (*trajectory)(double, const Vec3f&) = nullptr;
+  typedef std::function<Vec3f(double, const Vec3f&)> FuncType;
+  FuncType trajectory;
 
   void update(double dt) override {
     time += dt;
@@ -58,8 +58,7 @@ class MyVoice : public SynthVoice {
     g.popMatrix();
   }
 
-  void set(float x, float y, float size, const char* filename,
-           Vec3f (*func)(double, const Vec3f&)) {
+  void set(float x, float y, float size, const char* filename, FuncType func) {
     trajectory = func;       // Set the trajectory function
     mSource.load(filename);  // Load a sound file
     position.set(x, y, 0);   // Set the position of the voice
@@ -104,55 +103,21 @@ class MyApp : public App {
 int main() {
   MyApp app;
 
-  // NOTES...
-  // in this lambda functions, we decide the next position of the synth voice
-  // given the current time and the current position
-  // 
-  // we are not allowed (in this formulation) to "capture" anything in the lambdas
-  // we would have to re-write our synth voice class to use std::function or something
-  //
-  // also: the _t_ passed into each lambda is the seconds since the start of the note
-  // NOT the seconds since the start of the app
-  
+  double g = 0.7;
 
-  app.sequencer().add<MyVoice>(0, 1).set(
-      0, 0, 0.5, "8.wav", [](double t, const Vec3f& p) -> Vec3f { return p; });
-  app.sequencer().add<MyVoice>(0.5, 1).set(
-      0, 0.5, 0.5, "8.wav",
-      [](double t, const Vec3f& p) -> Vec3f { return p; });
-  app.sequencer().add<MyVoice>(1, 2).set(
-      0.5, 0.5, 0.7, "8.wav",
-      [](double t, const Vec3f& p) -> Vec3f { return p; });
-  app.sequencer().add<MyVoice>(1.1, 2).set(
-      0.6, 0.5, 0.7, "8.wav",
-      [](double t, const Vec3f& p) -> Vec3f { return p; });
-  app.sequencer().add<MyVoice>(1.2, 2).set(
-      0.3, 0.4, 0.7, "8.wav",
-      [](double t, const Vec3f& p) -> Vec3f { return p; });
-  app.sequencer().add<MyVoice>(1.3, 2).set(
-      0.2, 0.3, 0.7, "8.wav",
-      [](double t, const Vec3f& p) -> Vec3f { return p; });
-  app.sequencer().add<MyVoice>(1.4, 2).set(
-      0.1, 0.2, 0.7, "8.wav",
-      [](double t, const Vec3f& p) -> Vec3f { return p; });
-  app.sequencer().add<MyVoice>(1.5, 2).set(
-      0.0, 0.2, 0.7, "8.wav",
-      [](double t, const Vec3f& p) -> Vec3f { return p; });
-  app.sequencer().add<MyVoice>(1.6, 2).set(
-      -0.1, 0.1, 0.7, "8.wav",
-      [](double t, const Vec3f& p) -> Vec3f { return p; });
-  app.sequencer().add<MyVoice>(1.7, 2).set(
-      -0.2, 0.0, 0.7, "8.wav",
-      [](double t, const Vec3f& p) -> Vec3f { return p; });
-  app.sequencer().add<MyVoice>(1.8, 2).set(
-      -0.3, -0.1, 0.7, "8.wav",
-      [](double t, const Vec3f& p) -> Vec3f { return p; });
-  app.sequencer().add<MyVoice>(1.9, 2).set(
-      -0.4, -0.2, 0.7, "8.wav",
-      [](double t, const Vec3f& p) -> Vec3f { return p; });
-  app.sequencer().add<MyVoice>(2.0, 2).set(
-      -0.5, -0.3, 0.7, "8.wav",
-      [](double t, const Vec3f& p) -> Vec3f { return p; });
+  app.sequencer().add<MyVoice>(0, 1).set( 0, 0, 0.5, "8.wav", [&](double t, const Vec3f& p) -> Vec3f { return p * g; });
+  app.sequencer().add<MyVoice>(0.5, 1).set( 0, 0.5, 0.5, "8.wav", [&](double t, const Vec3f& p) -> Vec3f { return p * g; });
+  app.sequencer().add<MyVoice>(1, 2).set( 0.5, 0.5, 0.7, "8.wav", [&](double t, const Vec3f& p) -> Vec3f { return p * g; });
+  app.sequencer().add<MyVoice>(1.1, 2).set( 0.6, 0.5, 0.7, "8.wav", [&](double t, const Vec3f& p) -> Vec3f { return p * g; });
+  app.sequencer().add<MyVoice>(1.2, 2).set( 0.3, 0.4, 0.7, "8.wav", [&](double t, const Vec3f& p) -> Vec3f { return p * g; });
+  app.sequencer().add<MyVoice>(1.3, 2).set( 0.2, 0.3, 0.7, "8.wav", [&](double t, const Vec3f& p) -> Vec3f { return p * g; });
+  app.sequencer().add<MyVoice>(1.4, 2).set( 0.1, 0.2, 0.7, "8.wav", [&](double t, const Vec3f& p) -> Vec3f { return p * g; });
+  app.sequencer().add<MyVoice>(1.5, 2).set( 0.0, 0.2, 0.7, "8.wav", [&](double t, const Vec3f& p) -> Vec3f { return p * g; });
+  app.sequencer().add<MyVoice>(1.6, 2).set( -0.1, 0.1, 0.7, "8.wav", [&](double t, const Vec3f& p) -> Vec3f { return p * g; });
+  app.sequencer().add<MyVoice>(1.7, 2).set( -0.2, 0.0, 0.7, "8.wav", [&](double t, const Vec3f& p) -> Vec3f { return p * g; });
+  app.sequencer().add<MyVoice>(1.8, 2).set( -0.3, -0.1, 0.7, "8.wav", [&](double t, const Vec3f& p) -> Vec3f { return p * g; });
+  app.sequencer().add<MyVoice>(1.9, 2).set( -0.4, -0.2, 0.7, "8.wav", [&](double t, const Vec3f& p) -> Vec3f { return p * g; });
+  app.sequencer().add<MyVoice>(2.0, 2).set( -0.5, -0.3, 0.7, "8.wav", [&](double t, const Vec3f& p) -> Vec3f { return p * g; });
 
   app.start();
   return 0;
