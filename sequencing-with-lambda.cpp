@@ -45,6 +45,8 @@ class MyVoice : public SynthVoice {
 
     // if the trajectory function is real, then call it
     if (trajectory) {
+     printf("time: %f\n", time);
+      fflush(stdout);
       // update our position based on this custom function
       position = trajectory(time, position);
     }
@@ -87,6 +89,12 @@ class MyApp : public App {
       sequencer().playSequence();
     }
     return true;
+  }
+
+  void onAnimate(double dt) override {
+    // Update the sequencer
+    sequencer().update(dt); // XXX important to call this
+    // should we call in the audio callback instead?
   }
 
   void onDraw(Graphics& g) override {
