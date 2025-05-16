@@ -40,15 +40,14 @@ Then, run this example.
 using namespace al;
 
 class MyApp : public App {
-  Font font;
-  Mesh mesh;
+  al::FontRenderer mFontRenderer;
 
   void onCreate() override {
     nav().pos(0, 0, 10);
     nav().setHome();
-    font.load("../ConsolaMono-Book.ttf", 28, 2048);
-    font.alignCenter();
-    font.write(mesh, "(listening...)", 0.3f);
+    mFontRenderer.load(al::Font::defaultFont().c_str(), 64, 2048);
+    mFontRenderer.alignCenter();
+    mFontRenderer.write("(listening...)", 0.3f);
   }
 
   void onMessage(osc::Message& m) override {
@@ -57,20 +56,21 @@ class MyApp : public App {
       std::string statement;
       m >> statement;
       std::cout << "Received text: " << statement << std::endl;
-      font.write(mesh, statement.c_str(), 0.3f);
+      mFontRenderer.write(statement.c_str(), 0.3f);
     }
   }
 
   void onAnimate(double dt) override {}
 
   void onDraw(Graphics& g) override {
-    g.clear(0.5, 0.5, 0.5);
+    g.clear(0);
     g.blending(true);
     g.blendTrans();
-    g.texture();
-    font.tex.bind();
-    g.draw(mesh);
-    font.tex.unbind();
+    mFontRenderer.renderAt(g, al::Vec3d(0.0));
   }
 };
-int main() { MyApp().start(); }
+
+int main() { 
+  MyApp().start(); 
+  return 0;
+}
