@@ -23,7 +23,7 @@ From a macOS terminal, start up whisper.cpp like this:
 
 ```bash
 brew install liblo sdl2
-https://github.com/kybr/whisper.cpp
+git clone https://github.com/kybr/whisper.cpp
 cd whisper.cpp
 sh ./models/download-ggml-model.sh base.en
 cmake -B build -DWHISPER_SDL2=ON
